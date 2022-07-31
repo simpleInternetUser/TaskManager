@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"encoding/json"
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -24,7 +24,7 @@ func GetAllTasks() *AllTasks {
 	if err != nil {
 		log.Fatal(err)
 	}
-	datfile, err := io.ReadAll(file)
+	datfile, err := ioutil.ReadAll(file)
 	var aT AllTasks
 	json.Unmarshal(datfile, &aT.TasksA)
 	if err != nil {
