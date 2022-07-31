@@ -9,8 +9,8 @@ import (
 
 type Task struct {
 	Id          int
-	Status      string
 	Title       string
+	Status      string
 	Description string
 	Date        string
 }
