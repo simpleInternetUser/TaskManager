@@ -13,5 +13,5 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tmpl.Execute(w, tasks.ShowTasks())
+	tmpl.Execute(w, tasks.GetAllTasks())
 }
