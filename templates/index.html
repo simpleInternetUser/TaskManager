@@ -1,0 +1,32 @@
+<html>
+
+    <head>
+        <title>User tasks</title>
+    </head>
+
+    <body>
+
+        {{range .Tasks}}
+        <div>
+            <h3> ID:{{ .Id }} </h3>
+        </div>
+        <div> Title:{{ .Title }}</div>
+        <div> Status:{{ .Status }} </div>
+        <div> Description:{{ .Description }} </div>
+        <div> Date:{{ .Date }}</div>
+        {{end}}
+
+        <h1>Options</h1>
+        <form action="/addnewtask/">
+            <button type="submit">Add new task</button>
+        </form>
+        <form action="/deletetask/">
+            <button type="submit">Delete task</button>
+        </form>
+        <form action="/edittask/">
+            <button type="submit">Edit task</button>
+        </form>
+
+    </body>
+
+</html>
