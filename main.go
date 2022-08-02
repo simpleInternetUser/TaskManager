@@ -21,14 +21,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, tasks.GetAllTasks())
 }
 
-func GetDate() (string, int) {
-	y, m, d := time.Now().Date()
-	str := fmt.Sprintf("%v %v %v", d, m, y)
-	t := time.Now()
-	id := t.Year() + t.Day() + int(t.Month()) + t.Hour() + t.Minute() + t.Second()
-	return str, id
-}
-
 func AddNewTask(w http.ResponseWriter, r *http.Request) {
 
 	newT := &tasks.Task{}
@@ -49,25 +41,6 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
-}
-
-func DelTask(w http.ResponseWriter, r *http.Request) {
-
-	iddel, _ := strconv.Atoi(r.FormValue("id"))
-	listT := tasks.GetAllTasks()
-
-	i := 0
-	for ; i < len(listT.TasksA); i++ {
-		if listT.TasksA[i].Id == iddel {
-			break
-		}
-	}
-
-	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
-	newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
-	ioutil.WriteFile("tasks.json", newData, 0666)
-
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
 func EditTask(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +70,32 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
+func DelTask(w http.ResponseWriter, r *http.Request) {
+
+	iddel, _ := strconv.Atoi(r.FormValue("id"))
+	listT := tasks.GetAllTasks()
+
+	i := 0
+	for ; i < len(listT.TasksA); i++ {
+		if listT.TasksA[i].Id == iddel {
+			break
+		}
+	}
+
+	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
+	newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
+	ioutil.WriteFile("tasks.json", newData, 0666)
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+}
+
+func GetDate() (string, int) {
+	y, m, d := time.Now().Date()
+	str := fmt.Sprintf("%v %v %v", d, m, y)
+	t := time.Now()
+	id := t.Year() + t.Day() + int(t.Month()) + t.Hour() + t.Minute() + t.Second()
+	return str, id
+}
 func main() {
 	http.HandleFunc("/", Index)
 	http.HandleFunc("/addtask/", AddNewTask)
