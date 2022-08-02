@@ -53,27 +53,21 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method == "GET" {
-		t, _ := template.ParseFiles("templates/deltask.html")
-		t.Execute(w, nil)
-	} else {
+	iddel, _ := strconv.Atoi(r.FormValue("id"))
+	listT := tasks.GetAllTasks()
 
-		iddel, _ := strconv.Atoi(r.FormValue("id"))
-		listT := tasks.GetAllTasks()
-
-		i := 0
-		for ; i < len(listT.TasksA); i++ {
-			if listT.TasksA[i].Id == iddel {
-				break
-			}
+	i := 0
+	for ; i < len(listT.TasksA); i++ {
+		if listT.TasksA[i].Id == iddel {
+			break
 		}
-
-		listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
-		newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
-		ioutil.WriteFile("tasks.json", newData, 0666)
-
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
+
+	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
+	newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
+	ioutil.WriteFile("tasks.json", newData, 0666)
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
 func EditTask(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +75,26 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tmpl.Execute(w, tasks.GetAllTasks())
+
+	iddel, _ := strconv.Atoi(r.FormValue("id"))
+	listT := tasks.GetAllTasks()
+
+	i := 0
+	for ; i < len(listT.TasksA); i++ {
+		if listT.TasksA[i].Id == iddel {
+			break
+		}
+	}
+	tmpl.Execute(w, listT.TasksA[i])
+
+	listT.TasksA[i].Title = r.FormValue("title")
+	listT.TasksA[i].Description = r.FormValue("description")
+
+	fmt.Println(listT.TasksA[i])
+	//newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
+	//ioutil.WriteFile("tasks.json", newData, 0666)
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
 func main() {
