@@ -11,19 +11,23 @@
     </form>
 
     {{range .TasksA}}
+
+    <hr>
     <div>
-        <h3> ID:{{ .Id }} </h3>
+        <h4 id="id">ID:{{ .Id }}</h4>
+        <!--h3> ID:{{ .Id }} </h3-->
     </div>
     <div> Title:{{ .Title }}</div>
     <div> Status:{{ .Status }} </div>
     <div> Description:{{ .Description }} </div>
     <div> Date:{{ .Date }}</div>
-    <form action="/deletetask/">
-        <button type="submit">Delete task</button>
+    <form action="/deltask?id=" enctype="application/x-www-form-urlencoded">
+        <button type="submit" name="id" value={{ .Id }}>Delete task</button>
     </form>
-    <form action="/edittask/">
-        <button type="submit">Edit task</button>
+    <form action="/edittask?id=" enctype="application/x-www-form-urlencoded">
+        <button type="submit" name="id" value={{ .Id }} >Edit task</button>
     </form>
+    <hr>
     {{end}}
 
 </body>

@@ -1,0 +1,18 @@
+<html>
+
+<head>
+    <title>Edit task</title>
+</head>
+
+<body>
+    <h2>Edit task's data</h2>
+    <form method="POST" action="useraded">
+        <label>Edit title</label><br>
+        <input type="text" name="title" value={{ .Title }} /><br><br>
+        <label>Edit description</label><br>
+        <textarea type="text" name="description" rows="20" value={{ .Description }} ></textarea><br><br>
+        <input type="submit" value="Submit" />
+    </form>
+</body>
+
+</html>

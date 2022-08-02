@@ -21,6 +21,7 @@ type AllTasks struct {
 
 func GetAllTasks() *AllTasks {
 	file, err := os.OpenFile("tasks.json", os.O_RDWR|os.O_APPEND, 0666)
+	defer file.Close()
 	if err != nil {
 		log.Fatal(err)
 	}

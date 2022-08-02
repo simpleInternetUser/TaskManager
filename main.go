@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"strconv"
 	"time"
 
 	"github.com/simpleInternetUser/TaskManager/tasks"
@@ -42,21 +42,52 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 		newT.Status = "new"
 		newT.Date, newT.Id = GetDate()
 
-		file, _ := os.OpenFile("tasks.json", os.O_RDWR, 0644)
-		defer file.Close()
-		var newUT tasks.AllTasks
-		bfile, _ := ioutil.ReadAll(file)
-		json.Unmarshal(bfile, &newUT.TasksA)
+		newUT := tasks.GetAllTasks()
 		newUT.TasksA = append(newUT.TasksA, newT)
 		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
 		ioutil.WriteFile("tasks.json", newData, 0666)
 
-		http.Redirect(w, r, "/", 301)
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
+}
+
+func DelTask(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("templates/deltask.html")
+		t.Execute(w, nil)
+	} else {
+
+		iddel, _ := strconv.Atoi(r.FormValue("id"))
+		listT := tasks.GetAllTasks()
+
+		i := 0
+		for ; i < len(listT.TasksA); i++ {
+			if listT.TasksA[i].Id == iddel {
+				break
+			}
+		}
+
+		listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
+		newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
+		ioutil.WriteFile("tasks.json", newData, 0666)
+
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	}
+}
+
+func EditTask(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/edittask.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	tmpl.Execute(w, tasks.GetAllTasks())
 }
 
 func main() {
 	http.HandleFunc("/", Index)
 	http.HandleFunc("/addtask/", AddNewTask)
+	http.HandleFunc("/edittask/", EditTask)
+	http.HandleFunc("/deltask/", DelTask)
 	http.ListenAndServe(":8080", nil)
 }
