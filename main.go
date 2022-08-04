@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -29,10 +28,7 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, nil)
 	} else {
 
-		newT.Title = r.FormValue("title")
-		newT.Description = r.FormValue("description")
-		newT.Status = "new"
-		newT.Date, newT.Id = GetDate()
+		PageData(newT, r)
 
 		newUT := tasks.GetAllTasks()
 		newUT.TasksA = append(newUT.TasksA, newT)
@@ -43,44 +39,39 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func IndexJson(data *tasks.AllTasks, r *http.Request) int {
+	iddel, err := strconv.Atoi(r.FormValue("id"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	i := 0
+	for ; i < len(data.TasksA); i++ {
+		if data.TasksA[i].Id == iddel {
+			break
+		}
+	}
+	return i
+}
+
 func EditTask(w http.ResponseWriter, r *http.Request) {
+
 	tmpl, err := template.ParseFiles("templates/edittask.html")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	iddel, _ := strconv.Atoi(r.FormValue("id"))
 	listT := tasks.GetAllTasks()
-
-	i := 0
-	for ; i < len(listT.TasksA); i++ {
-		if listT.TasksA[i].Id == iddel {
-			break
-		}
-	}
-	tmpl.Execute(w, listT.TasksA[i])
-
-	listT.TasksA[i].Title = r.FormValue("title")
-	listT.TasksA[i].Description = r.FormValue("description")
-
-	fmt.Println(listT.TasksA[i])
-	//newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
-	//ioutil.WriteFile("tasks.json", newData, 0666)
+	i := IndexJson(listT, r)
+	tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
+	PageData(listT.TasksA[i], r)
 
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
-	iddel, _ := strconv.Atoi(r.FormValue("id"))
 	listT := tasks.GetAllTasks()
-
-	i := 0
-	for ; i < len(listT.TasksA); i++ {
-		if listT.TasksA[i].Id == iddel {
-			break
-		}
-	}
+	i := IndexJson(listT, r)
 
 	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
 	newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
@@ -89,12 +80,22 @@ func DelTask(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
-func GetDate() (string, int) {
-	y, m, d := time.Now().Date()
-	str := fmt.Sprintf("%v %v %v", d, m, y)
+func PageData(t *tasks.Task, r *http.Request) {
+	t.Title = r.FormValue("title")
+	t.Description = r.FormValue("description")
+	if t.Id == 0 {
+		t.Status = "new"
+		t.Date, t.Id = DateNowAndId()
+	} else {
+		t.Status = r.FormValue("status")
+	}
+}
+
+func DateNowAndId() (string, int) {
 	t := time.Now()
-	id := t.Year() + t.Day() + int(t.Month()) + t.Hour() + t.Minute() + t.Second()
-	return str, id
+	str := t.Format("01/02/2006 15:04:05")
+	id := t.Unix()
+	return str, int(id)
 }
 func main() {
 	http.HandleFunc("/", Index)
