@@ -1,3 +1,4 @@
+{{define "edit"}}
 <html>
 
 <head>
@@ -12,11 +13,12 @@
         <label>Edit description </label><br>
         <textarea type="text" name="description" rows="20" >{{ .Description }}</textarea><br><br>
         <label>Status task</label><br>
-        <label><input type="radio" name="new" value={{ .Status }}> New</label><br>
-        <label><input type="radio" name="in-work" value={{ .Status }}> In work</label><br>
-        <label><input type="radio" name="completed" value={{ .Status }}> Completed</label><br><br>
+        <label><input type="radio" name="status" value="new" {{if eq .Status "new"}} checked="checked" {{end}} > New</label><br>
+        <label><input type="radio" name="status" value="in work" {{if eq .Status "in work"}} checked="checked" {{end}} > In work</label><br>
+        <label><input type="radio" name="status" value="completed" {{if eq .Status "completed"}} checked="checked" {{end}}> Completed</label><br><br>
         <input type="submit" value="Submit" />
     </form>
 </body>
 
 </html>
+{{end}}
