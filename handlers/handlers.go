@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	tasks "TaskManager/tasks"
+	"github.com/simpleInternetUser/TaskManager/tasks"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {

@@ -1,15 +1,16 @@
 package main
 
 import (
-	"hendlers/hendlers"
 	"net/http"
+
+	"github.com/simpleInternetUser/TaskManager/handlers"
 )
 
 func main() {
-	http.HandleFunc("/", hendlers.Index)
-	http.HandleFunc("/addtask/", hendlers.AddNewTask)
-	http.HandleFunc("/edittask/", hendlers.EditTask)
-	http.HandleFunc("/savetask/", hendlers.SaveTask)
-	http.HandleFunc("/deltask/", hendlers.DelTask)
+	http.HandleFunc("/", handlers.Index)
+	http.HandleFunc("/addtask/", handlers.AddNewTask)
+	http.HandleFunc("/edittask/", handlers.EditTask)
+	http.HandleFunc("/savetask/", handlers.SaveTask)
+	http.HandleFunc("/deltask/", handlers.DelTask)
 	http.ListenAndServe(":8080", nil)
 }
