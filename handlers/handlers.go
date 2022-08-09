@@ -22,7 +22,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 func AddNewTask(w http.ResponseWriter, r *http.Request) {
 
-	newT := &tasks.Task{}
+	newT := tasks.Task{}
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("templates/addtask.html")
 		t.Execute(w, nil)
@@ -39,7 +39,7 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func IndexJson(data *tasks.AllTasks, r *http.Request) int {
+func IndexJson(data tasks.AllTasks, r *http.Request) int {
 	iddel, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		log.Fatal(err)
@@ -83,7 +83,7 @@ func DelTask(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
-func PageData(t *tasks.Task, r *http.Request) {
+func PageData(t tasks.Task, r *http.Request) {
 	t.Title = r.FormValue("title")
 	t.Description = r.FormValue("description")
 	if t.Id == 0 {

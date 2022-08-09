@@ -16,10 +16,10 @@ type Task struct {
 }
 
 type AllTasks struct {
-	TasksA []*Task
+	TasksA []Task
 }
 
-func GetAllTasks() *AllTasks {
+func GetAllTasks() AllTasks {
 	file, err := os.OpenFile("tasks.json", os.O_RDWR|os.O_APPEND, 0666)
 	defer file.Close()
 	if err != nil {
@@ -31,5 +31,5 @@ func GetAllTasks() *AllTasks {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &aT
+	return aT
 }
