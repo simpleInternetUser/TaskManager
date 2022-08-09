@@ -28,7 +28,7 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, nil)
 	} else {
 
-		PageData(newT, r)
+		PageData(&newT, r)
 
 		newUT := tasks.GetAllTasks()
 		newUT.TasksA = append(newUT.TasksA, newT)
@@ -83,7 +83,7 @@ func DelTask(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
-func PageData(t tasks.Task, r *http.Request) {
+func PageData(t *tasks.Task, r *http.Request) {
 	t.Title = r.FormValue("title")
 	t.Description = r.FormValue("description")
 	if t.Id == 0 {
