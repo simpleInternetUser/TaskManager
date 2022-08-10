@@ -63,13 +63,23 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 	listT := tasks.GetAllTasks()
 	i := IndexJson(listT, r)
 	tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
-	//PageData(listT.TasksA[i], r)
-
-	//http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 func SaveTask(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/save/"):]
-	http.Redirect(w, r, "/"+title, http.StatusFound)
+	newT := tasks.Task{}
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("templates/edittask.html")
+		t.Execute(w, nil)
+	} else {
+
+		PageData(&newT, r)
+
+		newUT := tasks.GetAllTasks()
+		newUT.TasksA = append(newUT.TasksA, newT)
+		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
+		ioutil.WriteFile("tasks.json", newData, 0666)
+
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	}
 }
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
@@ -96,6 +106,5 @@ func PageData(t *tasks.Task, r *http.Request) {
 
 func DateNowAndId() (time.Time, int) {
 	t := time.Now()
-	id := t.Unix()
-	return time.Now(), int(id)
+	return time.Now(), int(t.Unix())
 }
