@@ -94,9 +94,8 @@ func PageData(t *tasks.Task, r *http.Request) {
 	}
 }
 
-func DateNowAndId() (string, int) {
+func DateNowAndId() (time.Time, int) {
 	t := time.Now()
-	str := t.Format("01/02/2006 15:04:05")
 	id := t.Unix()
-	return str, int(id)
+	return time.Now(), int(id)
 }
