@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
 type Task struct {
@@ -12,7 +13,7 @@ type Task struct {
 	Title       string
 	Status      string
 	Description string
-	Date        string
+	Date        time.Time
 }
 
 type AllTasks struct {
