@@ -24,13 +24,13 @@ func GetAllTasks() AllTasks {
 	file, err := os.OpenFile("tasks.json", os.O_RDWR|os.O_APPEND, 0666)
 	defer file.Close()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	datfile, err := ioutil.ReadAll(file)
 	var aT AllTasks
 	json.Unmarshal(datfile, &aT.TasksA)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return aT
 }

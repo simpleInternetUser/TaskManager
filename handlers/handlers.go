@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -13,9 +14,15 @@ import (
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+
 	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	tmpl.Execute(w, tasks.GetAllTasks())
 }
@@ -39,10 +46,14 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func IndexJson(data tasks.AllTasks, r *http.Request) int {
+func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
+	strId := r.FormValue("id")
+	if strId == "" {
+		return 0, errors.New("Empty string")
+	}
 	iddel, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	i := 0
 	for ; i < len(data.TasksA); i++ {
@@ -50,20 +61,29 @@ func IndexJson(data tasks.AllTasks, r *http.Request) int {
 			break
 		}
 	}
-	return i
+	return i, nil
 }
 
 func EditTask(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	} else {
+		tmpl, err := template.ParseFiles("templates/edittask.html")
+		if err != nil {
+			log.Println(err)
+		}
 
-	tmpl, err := template.ParseFiles("templates/edittask.html")
-	if err != nil {
-		log.Fatal(err)
+		listT := tasks.GetAllTasks()
+		i, err := IndexJson(listT, r)
+		if err != nil {
+			log.Println(err)
+			http.Redirect(w, r, "/", http.StatusMovedPermanently)
+		}
+		tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
-
-	listT := tasks.GetAllTasks()
-	i := IndexJson(listT, r)
-	tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
 }
+
 func SaveTask(w http.ResponseWriter, r *http.Request) {
 	newT := tasks.Task{}
 	if r.Method == "GET" {
@@ -75,7 +95,10 @@ func SaveTask(w http.ResponseWriter, r *http.Request) {
 
 		newUT := tasks.GetAllTasks()
 		newUT.TasksA = append(newUT.TasksA, newT)
-		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
+		newData, err := json.MarshalIndent(&newUT.TasksA, "", " ")
+		if err != nil {
+			log.Println(err)
+		}
 		ioutil.WriteFile("tasks.json", newData, 0666)
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
@@ -84,10 +107,16 @@ func SaveTask(w http.ResponseWriter, r *http.Request) {
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
 	listT := tasks.GetAllTasks()
-	i := IndexJson(listT, r)
+	i, err := IndexJson(listT, r)
+	if err != nil {
+		log.Println(err)
+	}
 
 	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
-	newData, _ := json.MarshalIndent(&listT.TasksA, "", " ")
+	newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
+	if err != nil {
+		log.Println(err)
+	}
 	ioutil.WriteFile("tasks.json", newData, 0666)
 
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
