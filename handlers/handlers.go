@@ -10,8 +10,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/simpleInternetUser/TaskManager/config"
 	"github.com/simpleInternetUser/TaskManager/tasks"
 )
+
+var conf, _ = config.ReadConfig("config/config.json")
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
@@ -20,10 +23,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/index.html")
+	tmpl, err := template.ParseFiles(conf.PathTempl + "index.html")
 	if err != nil {
 		log.Println(err)
 	}
+
 	tmpl.Execute(w, tasks.GetAllTasks())
 }
 
@@ -31,7 +35,7 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 
 	newT := tasks.Task{}
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("templates/addtask.html")
+		t, _ := template.ParseFiles(conf.PathTempl + "addtask.html")
 		t.Execute(w, nil)
 	} else {
 
@@ -40,21 +44,24 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 		newUT := tasks.GetAllTasks()
 		newUT.TasksA = append(newUT.TasksA, newT)
 		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
-		ioutil.WriteFile("tasks.json", newData, 0666)
+		ioutil.WriteFile(conf.PathTasks, newData, 0666)
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
 }
 
 func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
+
 	strId := r.FormValue("id")
 	if strId == "" {
 		return 0, errors.New("Empty string")
 	}
+
 	iddel, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		log.Println(err)
 	}
+
 	i := 0
 	for ; i < len(data.TasksA); i++ {
 		if data.TasksA[i].Id == iddel {
@@ -65,45 +72,31 @@ func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
 }
 
 func EditTask(w http.ResponseWriter, r *http.Request) {
+
+	tmpl, err := template.ParseFiles(conf.PathTempl + "edittask.html")
+	if err != nil {
+		log.Println(err)
+	}
+
+	listT := tasks.GetAllTasks()
+	i, err := IndexJson(listT, r)
+	if err != nil {
+		log.Println(err)
+	}
 	if r.Method == "POST" {
+		PageData(&listT.TasksA[i], r)
+		newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
+		if err != nil {
+			log.Println(err)
+		}
+		ioutil.WriteFile(conf.PathTasks, newData, 0666)
+
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	} else {
-		tmpl, err := template.ParseFiles("templates/edittask.html")
-		if err != nil {
-			log.Println(err)
-		}
-
-		listT := tasks.GetAllTasks()
-		i, err := IndexJson(listT, r)
-		if err != nil {
-			log.Println(err)
-			http.Redirect(w, r, "/", http.StatusMovedPermanently)
-		}
 		tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
 }
 
-func SaveTask(w http.ResponseWriter, r *http.Request) {
-	newT := tasks.Task{}
-	if r.Method == "GET" {
-		t, _ := template.ParseFiles("templates/edittask.html")
-		t.Execute(w, nil)
-	} else {
-
-		PageData(&newT, r)
-
-		newUT := tasks.GetAllTasks()
-		newUT.TasksA = append(newUT.TasksA, newT)
-		newData, err := json.MarshalIndent(&newUT.TasksA, "", " ")
-		if err != nil {
-			log.Println(err)
-		}
-		ioutil.WriteFile("tasks.json", newData, 0666)
-
-		http.Redirect(w, r, "/", http.StatusMovedPermanently)
-	}
-}
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
 	listT := tasks.GetAllTasks()
@@ -117,7 +110,7 @@ func DelTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	ioutil.WriteFile("tasks.json", newData, 0666)
+	ioutil.WriteFile(conf.PathTasks, newData, 0666)
 
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
