@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
+	"log"
 )
 
 type Configuration struct {
@@ -15,12 +15,14 @@ type Configuration struct {
 func ReadConfig(FileName string) (Configuration, error) {
 	cofigF, err := ioutil.ReadFile(FileName)
 	if err != nil {
-		return Configuration{}, errors.New("Unable to read config file.")
+		log.Println("Unable to read config file.")
+		return Configuration{}, err
 	}
 	var config Configuration
 	err = json.Unmarshal(cofigF, &config)
 	if err != nil {
-		return Configuration{}, errors.New("Invalid JSON file.")
+		log.Println("Invalid JSON file.")
+		return Configuration{}, err
 	}
 	return config, nil
 }
