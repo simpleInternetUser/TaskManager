@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"os"
 	"time"
+
+	"github.com/simpleInternetUser/TaskManager/config"
 )
 
 type Task struct {
@@ -21,14 +22,17 @@ type AllTasks struct {
 }
 
 func GetAllTasks() AllTasks {
-	file, err := os.OpenFile("tasks.json", os.O_RDWR|os.O_APPEND, 0666)
-	defer file.Close()
+
+	conf, err := config.ReadConfig("config/config.json")
 	if err != nil {
 		log.Println(err)
 	}
-	datfile, err := ioutil.ReadAll(file)
+	datfile, err := ioutil.ReadFile(conf.PathTasks)
+	if err != nil {
+		log.Println(err)
+	}
 	var aT AllTasks
-	json.Unmarshal(datfile, &aT.TasksA)
+	err = json.Unmarshal(datfile, &aT.TasksA)
 	if err != nil {
 		log.Println(err)
 	}
