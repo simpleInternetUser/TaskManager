@@ -50,11 +50,11 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
+func IndexJson(data []tasks.Task, r *http.Request) (int, error) {
 
 	strId := r.FormValue("id")
 	if strId == "" {
-		return 0, errors.New("Empty string")
+		return 0, errors.New("object id not passed, empty string")
 	}
 
 	iddel, err := strconv.Atoi(r.FormValue("id"))
@@ -104,14 +104,14 @@ func DelTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-
+	id := listT.TasksA[i].Id
 	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
 	newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
 	if err != nil {
 		log.Println(err)
 	}
 	ioutil.WriteFile(conf.PathTasks, newData, 0666)
-
+	log.Println("Entry with id =", id, " deleted")
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
