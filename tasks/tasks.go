@@ -17,11 +17,15 @@ type Task struct {
 	Date        time.Time
 }
 
-type AllTasks struct {
-	TasksA []Task
+type Tasks interface {
+	Get(id int) (Task, error)
+	List() ([]Task, error)
+	Create(Task) (Task, error)
+	Update(Task) (Task, error)
+	Delete(id int) error
 }
 
-func GetAllTasks() AllTasks {
+func List() ([]Task, error) {
 
 	conf, err := config.ReadConfig("config/config.json")
 	if err != nil {
@@ -31,10 +35,10 @@ func GetAllTasks() AllTasks {
 	if err != nil {
 		log.Println(err)
 	}
-	var aT AllTasks
-	err = json.Unmarshal(datfile, &aT.TasksA)
+	var aT []Task
+	err = json.Unmarshal(datfile, &aT)
 	if err != nil {
 		log.Println(err)
 	}
-	return aT
+	return aT, nil
 }
