@@ -28,7 +28,13 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	tmpl.Execute(w, tasks.GetAllTasks())
+	var t tasks.Tasks
+	tmp, err := t.List()
+	if err != nil {
+		log.Println(err)
+	}
+
+	tmpl.Execute(w, tmp)
 }
 
 func AddNewTask(w http.ResponseWriter, r *http.Request) {
@@ -40,10 +46,16 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		PageData(&newT, r)
-
-		newUT := tasks.GetAllTasks()
-		newUT.TasksA = append(newUT.TasksA, newT)
-		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
+		var t tasks.Task
+		newUT, err := t.List()
+		if err != nil {
+			log.Println(err)
+		}
+		newUT = append(newUT, newT)
+		newData, err := json.MarshalIndent(&newUT, "", " ")
+		if err != nil {
+			log.Println(err)
+		}
 		ioutil.WriteFile(conf.PathTasks, newData, 0666)
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
@@ -63,8 +75,8 @@ func IndexJson(data []tasks.Task, r *http.Request) (int, error) {
 	}
 
 	i := 0
-	for ; i < len(data.TasksA); i++ {
-		if data.TasksA[i].Id == iddel {
+	for ; i < len(data); i++ {
+		if data[i].Id == iddel {
 			break
 		}
 	}
@@ -77,15 +89,15 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-
-	listT := tasks.GetAllTasks()
+	var t tasks.Tasks
+	listT, _ := t.List()
 	i, err := IndexJson(listT, r)
 	if err != nil {
 		log.Println(err)
 	}
 	if r.Method == "POST" {
-		PageData(&listT.TasksA[i], r)
-		newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
+		PageData(&listT[i], r)
+		newData, err := json.MarshalIndent(&listT, "", " ")
 		if err != nil {
 			log.Println(err)
 		}
@@ -93,20 +105,21 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	} else {
-		tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
+		tmpl.ExecuteTemplate(w, "edit", listT[i])
 	}
 }
 
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
-	listT := tasks.GetAllTasks()
+	var t tasks.Tasks
+	listT, _ := t.List()
 	i, err := IndexJson(listT, r)
 	if err != nil {
 		log.Println(err)
 	}
-	id := listT.TasksA[i].Id
-	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
-	newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
+	id := listT[i].Id
+	listT = append(listT[:i], listT[i+1:]...)
+	newData, err := json.MarshalIndent(&listT, "", " ")
 	if err != nil {
 		log.Println(err)
 	}

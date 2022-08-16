@@ -3,7 +3,6 @@ package tasks
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"time"
 
 	"github.com/simpleInternetUser/TaskManager/config"
@@ -25,20 +24,20 @@ type Tasks interface {
 	Delete(id int) error
 }
 
-func List() ([]Task, error) {
+func (t Task) List() ([]Task, error) {
 
 	conf, err := config.ReadConfig("config/config.json")
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
 	datfile, err := ioutil.ReadFile(conf.PathTasks)
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
 	var aT []Task
 	err = json.Unmarshal(datfile, &aT)
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
 	return aT, nil
 }
