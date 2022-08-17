@@ -28,13 +28,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	var t tasks.Tasks
-	tmp, err := t.List()
-	if err != nil {
-		log.Println(err)
-	}
-
-	tmpl.Execute(w, tmp)
+	tmpl.Execute(w, tasks.GetAllTasks())
 }
 
 func AddNewTask(w http.ResponseWriter, r *http.Request) {
@@ -46,27 +40,21 @@ func AddNewTask(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		PageData(&newT, r)
-		var t tasks.Task
-		newUT, err := t.List()
-		if err != nil {
-			log.Println(err)
-		}
-		newUT = append(newUT, newT)
-		newData, err := json.MarshalIndent(&newUT, "", " ")
-		if err != nil {
-			log.Println(err)
-		}
+
+		newUT := tasks.GetAllTasks()
+		newUT.TasksA = append(newUT.TasksA, newT)
+		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
 		ioutil.WriteFile(conf.PathTasks, newData, 0666)
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
 }
 
-func IndexJson(data []tasks.Task, r *http.Request) (int, error) {
+func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
 
 	strId := r.FormValue("id")
 	if strId == "" {
-		return 0, errors.New("object id not passed, empty string")
+		return 0, errors.New("bject id not passed, empty string")
 	}
 
 	iddel, err := strconv.Atoi(r.FormValue("id"))
@@ -75,8 +63,8 @@ func IndexJson(data []tasks.Task, r *http.Request) (int, error) {
 	}
 
 	i := 0
-	for ; i < len(data); i++ {
-		if data[i].Id == iddel {
+	for ; i < len(data.TasksA); i++ {
+		if data.TasksA[i].Id == iddel {
 			break
 		}
 	}
@@ -89,15 +77,15 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	var t tasks.Tasks
-	listT, _ := t.List()
+
+	listT := tasks.GetAllTasks()
 	i, err := IndexJson(listT, r)
 	if err != nil {
 		log.Println(err)
 	}
 	if r.Method == "POST" {
-		PageData(&listT[i], r)
-		newData, err := json.MarshalIndent(&listT, "", " ")
+		PageData(&listT.TasksA[i], r)
+		newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
 		if err != nil {
 			log.Println(err)
 		}
@@ -105,26 +93,25 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	} else {
-		tmpl.ExecuteTemplate(w, "edit", listT[i])
+		tmpl.ExecuteTemplate(w, "edit", listT.TasksA[i])
 	}
 }
 
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
-	var t tasks.Tasks
-	listT, _ := t.List()
+	listT := tasks.GetAllTasks()
 	i, err := IndexJson(listT, r)
 	if err != nil {
 		log.Println(err)
 	}
-	id := listT[i].Id
-	listT = append(listT[:i], listT[i+1:]...)
-	newData, err := json.MarshalIndent(&listT, "", " ")
+
+	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
+	newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
 	if err != nil {
 		log.Println(err)
 	}
 	ioutil.WriteFile(conf.PathTasks, newData, 0666)
-	log.Println("Entry with id =", id, " deleted")
+
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
 
