@@ -14,7 +14,7 @@ import (
 	"github.com/simpleInternetUser/TaskManager/tasks"
 )
 
-var conf, _ = config.ReadConfig("config/config.json")
+var CONF, _ = config.ReadConfig("config/config.json")
 
 func Index(w http.ResponseWriter, r *http.Request) {
 
@@ -23,28 +23,31 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles(conf.PathTempl + "index.html")
-	if err != nil {
-		log.Println(err)
-	}
-
-	tmpl.Execute(w, tasks.GetAllTasks())
+	tmpl, err := template.ParseFiles(CONF.PathTempl + "index.html")
+	printErr(err)
+	fd := tasks.AllTasks{}
+	dat, err := fd.List()
+	printErr(err)
+	tmpl.Execute(w, dat)
 }
 
 func AddNewTask(w http.ResponseWriter, r *http.Request) {
 
 	newT := tasks.Task{}
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles(conf.PathTempl + "addtask.html")
+		t, _ := template.ParseFiles(CONF.PathTempl + "addtask.html")
 		t.Execute(w, nil)
 	} else {
 
 		PageData(&newT, r)
-
-		newUT := tasks.GetAllTasks()
+		fd := tasks.AllTasks{}
+		newUT, err := fd.List()
+		if err != nil {
+			log.Println(err)
+		}
 		newUT.TasksA = append(newUT.TasksA, newT)
 		newData, _ := json.MarshalIndent(&newUT.TasksA, "", " ")
-		ioutil.WriteFile(conf.PathTasks, newData, 0666)
+		ioutil.WriteFile(CONF.PathTasks, newData, 0666)
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	}
@@ -58,9 +61,7 @@ func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
 	}
 
 	iddel, err := strconv.Atoi(r.FormValue("id"))
-	if err != nil {
-		log.Println(err)
-	}
+	printErr(err)
 
 	i := 0
 	for ; i < len(data.TasksA); i++ {
@@ -73,23 +74,21 @@ func IndexJson(data tasks.AllTasks, r *http.Request) (int, error) {
 
 func EditTask(w http.ResponseWriter, r *http.Request) {
 
-	tmpl, err := template.ParseFiles(conf.PathTempl + "edittask.html")
-	if err != nil {
-		log.Println(err)
-	}
+	tmpl, err := template.ParseFiles(CONF.PathTempl + "edittask.html")
+	printErr(err)
 
-	listT := tasks.GetAllTasks()
+	fd := tasks.AllTasks{}
+	listT, err := fd.List()
+	printErr(err)
+
 	i, err := IndexJson(listT, r)
-	if err != nil {
-		log.Println(err)
-	}
+	printErr(err)
+
 	if r.Method == "POST" {
 		PageData(&listT.TasksA[i], r)
 		newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
-		if err != nil {
-			log.Println(err)
-		}
-		ioutil.WriteFile(conf.PathTasks, newData, 0666)
+		printErr(err)
+		ioutil.WriteFile(CONF.PathTasks, newData, 0666)
 
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 	} else {
@@ -99,18 +98,16 @@ func EditTask(w http.ResponseWriter, r *http.Request) {
 
 func DelTask(w http.ResponseWriter, r *http.Request) {
 
-	listT := tasks.GetAllTasks()
+	fd := tasks.AllTasks{}
+	listT, err := fd.List()
+	printErr(err)
 	i, err := IndexJson(listT, r)
-	if err != nil {
-		log.Println(err)
-	}
+	printErr(err)
 
 	listT.TasksA = append(listT.TasksA[:i], listT.TasksA[i+1:]...)
 	newData, err := json.MarshalIndent(&listT.TasksA, "", " ")
-	if err != nil {
-		log.Println(err)
-	}
-	ioutil.WriteFile(conf.PathTasks, newData, 0666)
+	printErr(err)
+	ioutil.WriteFile(CONF.PathTasks, newData, 0666)
 
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
 }
@@ -129,4 +126,20 @@ func PageData(t *tasks.Task, r *http.Request) {
 func DateNowAndId() (time.Time, int) {
 	t := time.Now()
 	return time.Now(), int(t.Unix())
+}
+
+func printErr(err error) {
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func getId(r *http.Request) (int, error) {
+	strId := r.FormValue("id")
+	if strId == "" {
+		return 0, errors.New("bject id not passed, empty string")
+	}
+
+	iddel, err := strconv.Atoi(r.FormValue("id"))
+	return iddel, err
 }
