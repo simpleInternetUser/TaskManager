@@ -3,7 +3,6 @@ package tasks
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"time"
 
 	"github.com/simpleInternetUser/TaskManager/config"
@@ -21,20 +20,30 @@ type AllTasks struct {
 	TasksA []Task
 }
 
-func GetAllTasks() AllTasks {
+type Tasks interface {
+	Get(id int) (Task, error)
+	List() (AllTasks, error)
+	Create(Task) (Task, error)
+	Update(Task) (Task, error)
+	Delete(id int) error
+}
+
+func (aT AllTasks) List() (AllTasks, error) {
 
 	conf, err := config.ReadConfig("config/config.json")
 	if err != nil {
-		log.Println(err)
+		return AllTasks{}, err
 	}
 	datfile, err := ioutil.ReadFile(conf.PathTasks)
 	if err != nil {
-		log.Println(err)
+		return AllTasks{}, err
 	}
-	var aT AllTasks
+
 	err = json.Unmarshal(datfile, &aT.TasksA)
 	if err != nil {
-		log.Println(err)
+		return AllTasks{}, err
 	}
-	return aT
+	return aT, nil
 }
+
+//func (t AllTasks) Get(id int) (Task, error)
