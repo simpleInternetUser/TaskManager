@@ -4,25 +4,20 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/simpleInternetUser/TaskManager/config"
+	"github.com/gorilla/mux"
 	"github.com/simpleInternetUser/TaskManager/handlers"
 )
 
 func main() {
-
-	conf, err := config.ReadConfig("config/config.json")
-	if err != nil {
-		log.Println(err)
-	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.Index)
-	mux.HandleFunc("/addtask/", handlers.AddNewTask)
-	mux.HandleFunc("/edittask/", handlers.EditTask)
-	mux.HandleFunc("/deltask/", handlers.DelTask)
+	r := mux.NewRouter()
+	//mux := http.NewServeMux()
+	r.HandleFunc("/", handlers.Index)
+	r.HandleFunc("/addtask/", handlers.AddNewTask)
+	r.HandleFunc("/edittask/", handlers.EditTask)
+	r.HandleFunc("/deltask/", handlers.DelTask)
 
 	log.Println("Starting a web server on localhost:8080")
-	err = http.ListenAndServe(conf.ServerPort, mux)
+	err := http.ListenAndServe(handlers.CONF.ServerPort, r)
 	if err != nil {
 		log.Println(err)
 	}

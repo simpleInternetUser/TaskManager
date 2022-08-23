@@ -21,7 +21,7 @@
     <div> Status:{{ .Status }} </div>
     <div> Description:{{ .Description }} </div>
     <div> Date:{{ .Date }}</div>
-    <form action="/deltask?id=" enctype="application/x-www-form-urlencoded">
+    <form action="/deltask/" enctype="application/x-www-form-urlencoded">
         <button type="submit" name="id" value={{ .Id }}>Delete task</button>
     </form>
     <form action="/edittask/" enctype="application/x-www-form-urlencoded">
